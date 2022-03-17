@@ -1,0 +1,11 @@
+{
+  "database": {
+      "host": "mysql",
+      "port": "3306",
+      "user": "go_test",
+      "pass": "password",
+      "protocol": "tcp(db:3306)",
+      "name": "go_database"
+  }
+
+}

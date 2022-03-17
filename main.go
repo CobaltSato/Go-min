@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 )
 
 type Post struct {
@@ -15,6 +16,15 @@ type Post struct {
   Name string
   Message string
 }
+
+func init() {
+  viper.SetConfigFile("config.json")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+ 	}
+}
+
 
 func main() {
   db := sqlConnect()
@@ -65,16 +75,18 @@ func main() {
 }
 
 func sqlConnect() (database *gorm.DB) {
-  DBMS := "mysql"
-  USER := "go_test"
-  PASS := "password"
-  PROTOCOL := "tcp(db:3306)"
-  DBNAME := "go_database"
+	DBHOST := viper.GetString(`database.host`)
+	USER := viper.GetString(`database.user`)
+	PASS := viper.GetString(`database.pass`)
+  PROTOCOL := viper.GetString(`database.protocol`)
+  DBNAME := viper.GetString(`database.name`)
 
   CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
 
+  fmt.Println(CONNECT)
+
   count := 0
-  db, err := gorm.Open(DBMS, CONNECT)
+  db, err := gorm.Open(DBHOST, CONNECT)
   if err != nil {
     for {
       if err == nil {
@@ -88,7 +100,7 @@ func sqlConnect() (database *gorm.DB) {
         fmt.Println("")
         panic(err)
       }
-      db, err = gorm.Open(DBMS, CONNECT)
+      db, err = gorm.Open(DBHOST, CONNECT)
     }
   }
 
