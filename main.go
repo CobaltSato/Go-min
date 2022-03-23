@@ -19,10 +19,10 @@ type Post struct {
 
 func init() {
   viper.SetConfigFile("config.json")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
- 	}
+    err := viper.ReadInConfig()
+    if err != nil {
+        panic(err)
+     }
 }
 
 
@@ -75,9 +75,9 @@ func main() {
 }
 
 func sqlConnect() (database *gorm.DB) {
-	DBHOST := viper.GetString(`database.host`)
-	USER := viper.GetString(`database.user`)
-	PASS := viper.GetString(`database.pass`)
+  DBHOST := viper.GetString(`database.host`)
+  USER := viper.GetString(`database.user`)
+  PASS := viper.GetString(`database.pass`)
   PROTOCOL := viper.GetString(`database.protocol`)
   DBNAME := viper.GetString(`database.name`)
 
