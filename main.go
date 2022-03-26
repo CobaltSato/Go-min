@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Post is a struct for db
 type Post struct {
 	gorm.Model
 	Name    string
@@ -70,7 +72,9 @@ func main() {
 		ctx.Redirect(302, "/")
 	})
 
-	router.Run()
+	if err := router.Run(); err != nil {
+		log.Fatalf("server can't start :%v", err)
+	}
 }
 
 func sqlConnect() (database *gorm.DB) {
