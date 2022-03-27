@@ -37,7 +37,8 @@ func main() {
 		server.NewDatabase()
 		var posts []post.Post
 
-		server.DB.GetPosts(&posts)
+		postRepo := mysql_min.NewPost(server.DB.Get())
+		postRepo.GetPosts(&posts)
 
 		defer server.DB.Close()
 

@@ -7,3 +7,8 @@ type Post struct {
 	Name    string
 	Message string
 }
+
+//
+type PostRepository interface {
+	GetPosts(posts *[]Post)
+}

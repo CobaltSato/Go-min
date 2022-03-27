@@ -40,6 +40,13 @@ func init() {
 	}
 }
 
+//
+func NewPost(db *gorm.DB) post.PostRepository {
+	return &Mysql{
+		database: db,
+	}
+}
+
 func NewDatabase() (mysql *Mysql) {
 	DBHOST := viper.GetString(`database.host`)
 	USER := viper.GetString(`database.user`)
