@@ -13,6 +13,7 @@ import (
 )
 
 // Post is a struct for db
+// TODO: domainで定義
 type Post struct {
 	gorm.Model
 	Name    string
@@ -60,7 +61,7 @@ func main() {
 		fmt.Println("create user " + name + " and message" + message)
 
 		db := server.DB.Get()
-		db.Create(&Post{Name: name, Message: message})
+		db.Create(&Post{Name: name, Message: message}) // TODO: interfaceで実行
 		defer server.DB.Close()
 
 		ctx.Redirect(302, "/")
@@ -75,8 +76,8 @@ func main() {
 		}
 		var post Post
 		db := server.DB.Get()
-		db.First(&post, id)
-		db.Delete(&post)
+		db.First(&post, id) // TODO: interfaceで実行
+		db.Delete(&post)    // TODO: interfaceで実行
 		defer server.DB.Close()
 
 		ctx.Redirect(302, "/")
