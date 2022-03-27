@@ -5,20 +5,12 @@ import (
 	"log"
 	"strconv"
 
+	post "github.com/CobaltSato/Go-min/domain"
 	"github.com/CobaltSato/Go-min/mysql_min"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 )
-
-// Post is a struct for db
-// TODO: domainで定義
-type Post struct {
-	gorm.Model
-	Name    string
-	Message string
-}
 
 // Server
 type Server struct {
@@ -34,7 +26,7 @@ func main() {
 	server.NewDatabase()
 
 	db := server.DB.Get()
-	db.AutoMigrate(&Post{}) // TODO: 運用ツールからの実行
+	db.AutoMigrate(&post.Post{}) // TODO: 運用ツールからの実行
 
 	defer server.DB.Close()
 
@@ -43,10 +35,10 @@ func main() {
 
 	router.GET("/", func(ctx *gin.Context) {
 		server.NewDatabase()
-		var posts []Post
+		var posts []post.Post
 
-		db := server.DB.Get()
-		db.Order("created_at asc").Find(&posts)
+		server.DB.GetPosts(&posts)
+
 		defer server.DB.Close()
 
 		ctx.HTML(200, "index.html", gin.H{
@@ -61,7 +53,7 @@ func main() {
 		fmt.Println("create user " + name + " and message" + message)
 
 		db := server.DB.Get()
-		db.Create(&Post{Name: name, Message: message}) // TODO: interfaceで実行
+		db.Create(&post.Post{Name: name, Message: message}) // TODO: interfaceで実行
 		defer server.DB.Close()
 
 		ctx.Redirect(302, "/")
@@ -74,7 +66,7 @@ func main() {
 		if err != nil {
 			panic("id is not a number")
 		}
-		var post Post
+		var post post.Post
 		db := server.DB.Get()
 		db.First(&post, id) // TODO: interfaceで実行
 		db.Delete(&post)    // TODO: interfaceで実行

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	post "github.com/CobaltSato/Go-min/domain"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
@@ -16,10 +17,15 @@ type Mysql struct {
 type DB interface {
 	Get() *gorm.DB
 	Close()
+	GetPosts(posts *[]post.Post)
 }
 
 func (m Mysql) Get() *gorm.DB {
 	return m.database
+}
+
+func (m Mysql) GetPosts(posts *[]post.Post) {
+	m.database.Order("created_at asc").Find(posts)
 }
 
 func (m Mysql) Close() {
