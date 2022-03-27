@@ -24,24 +24,27 @@ type Server struct {
 	DB mysql_min.DB
 }
 
+func (s *Server) NewDatabase() {
+	s.DB = mysql_min.NewDatabase()
+}
+
 func main() {
-	mysql := mysql_min.NewDatabase()
-	server := Server{DB: mysql}
+	server := Server{}
+	server.NewDatabase()
 
 	db := server.DB.Get()
 	db.AutoMigrate(&Post{}) // TODO: 運用ツールからの実行
 
-	defer db.Close()
+	defer server.DB.Close()
 
-	router := gin.Default()
+	router := gin.Default() // TODO: dbを埋め込んだserverのルーティングをする
 	router.LoadHTMLGlob("templates/*.html")
 
 	router.GET("/", func(ctx *gin.Context) {
-		server.DB = mysql_min.NewDatabase()
-		db := server.DB.Get()
+		server.NewDatabase()
 		var posts []Post
 		db.Order("created_at asc").Find(&posts)
-		defer db.Close()
+		defer server.DB.Close()
 
 		ctx.HTML(200, "index.html", gin.H{
 			"posts": posts,
@@ -49,20 +52,18 @@ func main() {
 	})
 
 	router.POST("/new", func(ctx *gin.Context) {
-		server.DB = mysql_min.NewDatabase()
-		db := server.DB.Get()
+		server.NewDatabase()
 		name := ctx.PostForm("name")
 		message := ctx.PostForm("message")
 		fmt.Println("create user " + name + " and message" + message)
 		db.Create(&Post{Name: name, Message: message})
-		defer db.Close()
+		defer server.DB.Close()
 
 		ctx.Redirect(302, "/")
 	})
 
 	router.POST("/delete/:id", func(ctx *gin.Context) {
-		server.DB = mysql_min.NewDatabase()
-		db := server.DB.Get()
+		server.NewDatabase()
 		n := ctx.Param("id")
 		id, err := strconv.Atoi(n)
 		if err != nil {
@@ -71,7 +72,7 @@ func main() {
 		var post Post
 		db.First(&post, id)
 		db.Delete(&post)
-		defer db.Close()
+		defer server.DB.Close()
 
 		ctx.Redirect(302, "/")
 	})

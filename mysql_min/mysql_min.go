@@ -15,10 +15,15 @@ type Mysql struct {
 
 type DB interface {
 	Get() *gorm.DB
+	Close()
 }
 
 func (m Mysql) Get() *gorm.DB {
 	return m.database
+}
+
+func (m Mysql) Close() {
+	m.database.Close()
 }
 
 func init() {
