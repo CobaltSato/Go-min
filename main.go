@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	post "github.com/CobaltSato/Go-min/domain"
 	"github.com/CobaltSato/Go-min/mysql_min"
+	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -18,7 +21,15 @@ type Server struct {
 }
 
 func (s *Server) NewDatabase() {
-	s.DB = mysql_min.NewDatabase()
+	s.DB = &mysql_min.Mysql{Database: NewDatabase()}
+}
+
+func init() {
+	viper.SetConfigFile("config.json")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
@@ -79,4 +90,37 @@ func main() {
 	if err := router.Run(); err != nil {
 		log.Fatalf("server can't start :%v", err)
 	}
+}
+
+func NewDatabase() (db *gorm.DB) {
+	DBHOST := viper.GetString(`database.host`)
+	USER := viper.GetString(`database.user`)
+	PASS := viper.GetString(`database.pass`)
+	PROTOCOL := viper.GetString(`database.protocol`)
+	DBNAME := viper.GetString(`database.name`)
+
+	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
+
+	fmt.Println(CONNECT)
+
+	count := 0
+	db, err := gorm.Open(DBHOST, CONNECT)
+	if err != nil {
+		for {
+			if err == nil {
+				fmt.Println("")
+				break
+			}
+			fmt.Print(".")
+			time.Sleep(time.Second)
+			count++
+			if count > 180 {
+				fmt.Println("")
+				panic(err)
+			}
+			db, err = gorm.Open(DBHOST, CONNECT)
+		}
+	}
+
+	return db
 }
