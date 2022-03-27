@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"time"
+
+	"github.com/CobaltSato/Go-min/mysql_min"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/spf13/viper"
 )
 
 // Post is a struct for db
@@ -19,24 +19,26 @@ type Post struct {
 	Message string
 }
 
-func init() {
-	viper.SetConfigFile("config.json")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
+// Server
+type Server struct {
+	DB mysql_min.DB
 }
 
 func main() {
-	db := sqlConnect()
-	db.AutoMigrate(&Post{})
+	mysql := mysql_min.NewDatabase()
+	server := Server{DB: mysql}
+
+	db := server.DB.Get()
+	db.AutoMigrate(&Post{}) // TODO: 運用ツールからの実行
+
 	defer db.Close()
 
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*.html")
 
 	router.GET("/", func(ctx *gin.Context) {
-		db := sqlConnect()
+		server.DB = mysql_min.NewDatabase()
+		db := server.DB.Get()
 		var posts []Post
 		db.Order("created_at asc").Find(&posts)
 		defer db.Close()
@@ -47,7 +49,8 @@ func main() {
 	})
 
 	router.POST("/new", func(ctx *gin.Context) {
-		db := sqlConnect()
+		server.DB = mysql_min.NewDatabase()
+		db := server.DB.Get()
 		name := ctx.PostForm("name")
 		message := ctx.PostForm("message")
 		fmt.Println("create user " + name + " and message" + message)
@@ -58,7 +61,8 @@ func main() {
 	})
 
 	router.POST("/delete/:id", func(ctx *gin.Context) {
-		db := sqlConnect()
+		server.DB = mysql_min.NewDatabase()
+		db := server.DB.Get()
 		n := ctx.Param("id")
 		id, err := strconv.Atoi(n)
 		if err != nil {
@@ -75,37 +79,4 @@ func main() {
 	if err := router.Run(); err != nil {
 		log.Fatalf("server can't start :%v", err)
 	}
-}
-
-func sqlConnect() (database *gorm.DB) {
-	DBHOST := viper.GetString(`database.host`)
-	USER := viper.GetString(`database.user`)
-	PASS := viper.GetString(`database.pass`)
-	PROTOCOL := viper.GetString(`database.protocol`)
-	DBNAME := viper.GetString(`database.name`)
-
-	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
-
-	fmt.Println(CONNECT)
-
-	count := 0
-	db, err := gorm.Open(DBHOST, CONNECT)
-	if err != nil {
-		for {
-			if err == nil {
-				fmt.Println("")
-				break
-			}
-			fmt.Print(".")
-			time.Sleep(time.Second)
-			count++
-			if count > 180 {
-				fmt.Println("")
-				panic(err)
-			}
-			db, err = gorm.Open(DBHOST, CONNECT)
-		}
-	}
-
-	return db
 }
