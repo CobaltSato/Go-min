@@ -43,6 +43,8 @@ func main() {
 	router.GET("/", func(ctx *gin.Context) {
 		server.NewDatabase()
 		var posts []Post
+
+		db := server.DB.Get()
 		db.Order("created_at asc").Find(&posts)
 		defer server.DB.Close()
 
@@ -56,6 +58,8 @@ func main() {
 		name := ctx.PostForm("name")
 		message := ctx.PostForm("message")
 		fmt.Println("create user " + name + " and message" + message)
+
+		db := server.DB.Get()
 		db.Create(&Post{Name: name, Message: message})
 		defer server.DB.Close()
 
@@ -70,6 +74,7 @@ func main() {
 			panic("id is not a number")
 		}
 		var post Post
+		db := server.DB.Get()
 		db.First(&post, id)
 		db.Delete(&post)
 		defer server.DB.Close()
